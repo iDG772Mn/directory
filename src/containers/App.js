@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import SearchBox from './SearchBox';
-import CardList from './CardList'; 
+import SearchBox from '../components/SearchBox';
+import CardList from '../components/CardList'; 
+import Scroll from '../components/Scroll';
 
 class App extends Component {
     constructor() {
@@ -35,17 +36,22 @@ class App extends Component {
     }
     
     render() {
-        const filteredDirectory = this.state.directory.filter(directory => {
-            return directory.name.toLowerCase().includes(this.state.searchField.toLowerCase());
+        const { directory, searchField } = this.state;
+        const filteredDirectory = directory.filter(directory => {
+            return directory.name.toLowerCase().includes(searchField.toLowerCase());
         })
-        return (
-            <div className='tc avenir'>
-                <h1 className='light-purple'>Directory</h1>
-                <SearchBox onSearch={this.onSearch} />
-                {(this.state.directory.length === 0) ? <h2 className='tc'>Loading....</h2> : <CardList directory={filteredDirectory}/>}
-                <div className='f6 ma3'>Directory populated using <a href='https://randomuser.me/' target='_new'>Random User Generator</a>.</div>
-            </div>
-        );
+        return (!directory.length) ?
+            <h2 className='tc'>Loading....</h2> :
+            (
+                <div className='tc avenir'>
+                    <h1 className='orange'>Simulated Directory</h1>
+                    <SearchBox onSearch={this.onSearch} />
+                    <Scroll>
+                        <CardList directory={filteredDirectory} />
+                    </Scroll>
+                    <div className='f6 ma3'>Directory populated using <a href='https://randomuser.me/' target='_new'>Random User Generator</a>.</div>
+                </div>
+            );
     }
 }
 
