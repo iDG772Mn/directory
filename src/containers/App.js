@@ -1,53 +1,47 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import SearchBox from '../components/SearchBox';
 import CardList from '../components/CardList'; 
 import Scroll from '../components/Scroll';
+import ErrorBoundary from '../components/ErrorBoundary';
+import { setSearchField, requestDirectory } from '../actions';
+
+const mapStateToProps = state => {
+    return {
+        searchField: state.searchDirectory.searchField,
+        directory: state.requestDirectory.directory,
+        isPending: state.requestDirectory.isPending,
+        error: state.requestDirectory.error
+    }
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onSearch: (event) => dispatch(setSearchField(event.target.value)),
+        onRequestDirectory: () => dispatch(requestDirectory())
+    }
+}
 
 class App extends Component {
-    constructor() {
-        super();
-        this.state = {
-            searchField: '',
-            directory: [],
-        }
-    }
-
     componentDidMount() {
-        fetch('https://randomuser.me/api/?results=100')
-            .then(response => response.json())
-            .then(data => {
-                let people = data.results;
-                for (let i = 0; i < people.length; i++) {
-                    let person = {
-                                    id: i,
-                                    picture: people[i].picture.large,
-                                    name: people[i].name.first + " " + people[i].name.last,
-                                    username: people[i].login.username,
-                                    email: people[i].email,
-                                    cell: people[i].cell
-                                 };
-                    this.setState({directory: this.state.directory.concat(person)});
-                }
-            });
+        this.props.onRequestDirectory();
     }
 
-    onSearch = (event) => {
-        this.setState({ searchField: event.target.value });       
-    }
-    
     render() {
-        const { directory, searchField } = this.state;
+        const { searchField, onSearch, directory, isPending } = this.props;
         const filteredDirectory = directory.filter(directory => {
             return directory.name.toLowerCase().includes(searchField.toLowerCase());
         })
-        return (!directory.length) ?
+        return isPending ?
             <h2 className='tc'>Loading....</h2> :
             (
                 <div className='tc avenir'>
                     <h1 className='orange'>Simulated Directory</h1>
-                    <SearchBox onSearch={this.onSearch} />
+                    <SearchBox onSearch={onSearch} />
                     <Scroll>
-                        <CardList directory={filteredDirectory} />
+                        <ErrorBoundary>
+                            <CardList directory={filteredDirectory} />
+                        </ErrorBoundary>
                     </Scroll>
                     <div className='f6 ma3'>Directory populated using <a href='https://randomuser.me/' target='_new'>Random User Generator</a>.</div>
                 </div>
@@ -55,4 +49,4 @@ class App extends Component {
     }
 }
 
-export default App;
+export default connect(mapStateToProps, mapDispatchToProps)(App);
